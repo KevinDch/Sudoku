@@ -71,97 +71,66 @@ sudoku_map::print_line(int squared_line,
                        int line,
                        std::stringstream &StringStream) const
 {
-    bool add_starting = ((squared_line == 1) && (line == 1));
-    bool add_finish = ((squared_line == 3) && (line == 3));
+    return print_line_undefined_type(squared_line, line, StringStream, square_map);
+}
 
-    switch (squared_line)
+std::string sudoku_map::print_sudoku(int difficulty) const
+{
+    single_prt_map_t char_square_map;
+    std::stringstream StringStream;
+
+    convert_to_char(char_square_map);
+    set_blank(char_square_map, difficulty);
+
+    for (int square_line = 1; square_line <= 3; square_line++)
     {
-        case 1:
-            squared_line = 0;
-            break;
-
-        case 2:
-            squared_line = 3;
-            break;
-
-        case 3:
-            squared_line = 6;
-            break;
-
-        default:
-            throw sudoku_error(SUDOKU_UNKNOWN_ERROR);
-
+        for (int line = 1; line <= 3; line++)
+        {
+            print_line_undefined_type(square_line,
+                                      line,
+                                      StringStream,
+                                      char_square_map);
+            StringStream << std::endl;
+        }
     }
 
-    switch (line)
+    return StringStream.str();
+}
+
+sudoku_map::single_prt_map_t & sudoku_map::convert_to_char(single_prt_map_t & _map) const
+{
+    for (int square = 0; square < 9; square++)
     {
-        case 1:
+        single_prt_square_t singleSquare;
 
-            if (add_starting)
-            {
-                StringStream << "╔═══╤═══╤═══╦═══╤═══╤═══╦═══╤═══╤═══╗\n";
-            }
+        for (int position = 0; position < 9; position++)
+        {
+            singleSquare.emplace_back('0' + square_map[square][position]);
+        }
 
-                        // square 1, line 1
-            StringStream << "║ " << square_map[squared_line + 0][0] << " │"
-                         << " " << square_map[squared_line + 0][1] << " |"
-                         << " " << square_map[squared_line + 0][2] << " ║"
-                        // square 2, line 1
-                        << " " << square_map[squared_line + 1][0] << " │"
-                        << " " << square_map[squared_line + 1][1] << " |"
-                        << " " << square_map[squared_line + 1][2] << " ║"
-                        // square 3, line 1
-                        << " " << square_map[squared_line + 2][0] << " │"
-                        << " " << square_map[squared_line + 2][1] << " |"
-                        << " " << square_map[squared_line + 2][2] << " ║"
-                        ;
-            break;
-
-        case 2:
-            StringStream << "╟───┼───┼───╫───┼───┼───╫───┼───┼───╢\n"
-                         // square 1, line 2
-                         << "║ " << square_map[squared_line + 0][3] << " │"
-                         << " " << square_map[squared_line + 0][4] << " |"
-                         << " " << square_map[squared_line + 0][5] << " ║"
-                         // square 2, line 2
-                         << " " << square_map[squared_line + 1][3] << " │"
-                         << " " << square_map[squared_line + 1][4] << " |"
-                         << " " << square_map[squared_line + 1][5] << " ║"
-                         // square 3, line 2
-                         << " " << square_map[squared_line + 2][3] << " │"
-                         << " " << square_map[squared_line + 2][4] << " |"
-                         << " " << square_map[squared_line + 2][5] << " ║"
-                    ;
-            break;
-
-        case 3:
-            StringStream << "╟───┼───┼───╫───┼───┼───╫───┼───┼───╢\n"
-                         // square 1, line 3
-                         << "║ " << square_map[squared_line + 0][6] << " │"
-                         << " " << square_map[squared_line + 0][7] << " |"
-                         << " " << square_map[squared_line + 0][8] << " ║"
-                         // square 2, line 3
-                         << " " << square_map[squared_line + 1][6] << " │"
-                         << " " << square_map[squared_line + 1][7] << " |"
-                         << " " << square_map[squared_line + 1][8] << " ║"
-                         // square 3, line 3
-                         << " " << square_map[squared_line + 2][6] << " │"
-                         << " " << square_map[squared_line + 2][7] << " |"
-                         << " " << square_map[squared_line + 2][8] << " ║\n";
-            if (add_finish)
-            {
-                StringStream << "╚═══╧═══╧═══╩═══╧═══╧═══╩═══╧═══╧═══╝";
-            }
-            else
-            {
-                StringStream << "╠═══╪═══╪═══╬═══╪═══╪═══╬═══╪═══╪═══╣";
-            }
-
-            break;
-
-        default:
-            throw sudoku_error(SUDOKU_UNKNOWN_ERROR);
+        _map.emplace_back(singleSquare);
     }
 
-    return StringStream;
+    return _map;
+}
+
+sudoku_map::single_prt_map_t &sudoku_map::set_blank(
+        sudoku_map::single_prt_map_t &_map, int difficulty) const
+{
+    auto if_blank = [&](int difficulty, const sudoku_map* _this)->bool
+    {
+        auto num = _this->gen_random_num(0, 99);
+        return difficulty > num;
+    };
+
+    for (int i = 0; i < 9; i++)
+    {
+        for (int j = 0; j < 9; j++)
+        {
+            if(if_blank(difficulty, this))
+            {
+                _map[i][j] = ' ';
+            }
+        }
+    }
 }
